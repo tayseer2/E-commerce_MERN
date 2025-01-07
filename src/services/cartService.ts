@@ -61,7 +61,6 @@ export const addItemToCart = async ({productId, quantity, userId}: AddItemToCart
     product: productId,
     unitPrice: product.price,
     quantity,
-    price: 0
   })
 
   // uptade the total amount

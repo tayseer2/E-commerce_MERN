@@ -7,7 +7,6 @@ export interface ICartItem {
   product: IProduct;
   unitPrice: number;
   quantity: number;
-  price: number;
 }
 
 export interface ICart extends Document {
