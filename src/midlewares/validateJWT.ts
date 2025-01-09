@@ -3,8 +3,6 @@ import { NextFunction, Request, Response } from "express";
 import userModel from "../models/userModel";
 import { ExtendedRequest } from "../types/extendedRequest";
 
-
-
 const validateJWT = (
   req: ExtendedRequest,
   res: Response,
@@ -24,33 +22,28 @@ const validateJWT = (
     return;
   }
 
-  jwt.verify(
-    token,
-    "F5FiHQIZlBfT8UsF1BR6mUXOoBsQHwSN",
-    async (err, payload) => {
-      if (err) {
-        res.status(401).send("Invalid token");
-        return;
-      }
-
-      if (!payload) {
-        res.status(401).send("Invalid token payload");
-        return;
-      }
-
-      const userPayload = payload as {
-        email: string;
-        firstName: string;
-        lastName: string;
-      };
-
-      // fetch user from database based on the payload
-      const user = await userModel.findOne({ email: userPayload.email });
-      req.user = user;
-      next();
+  jwt.verify(token, process.env.JWT_SECRET || "", async (err, payload) => {
+    if (err) {
+      res.status(401).send("Invalid token");
+      return;
     }
-  );
+
+    if (!payload) {
+      res.status(401).send("Invalid token payload");
+      return;
+    }
+
+    const userPayload = payload as {
+      email: string;
+      firstName: string;
+      lastName: string;
+    };
+
+    // fetch user from database based on the payload
+    const user = await userModel.findOne({ email: userPayload.email });
+    req.user = user;
+    next();
+  });
 };
 
 export default validateJWT;
-
