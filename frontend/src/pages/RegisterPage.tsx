@@ -6,6 +6,7 @@ import Button from "@mui/material/Button";
 import { useRef, useState } from "react";
 import { BASE_URL } from "../constants/baseUrl";
 import Alert from "@mui/material/Alert";
+import { useAuth } from "../context/Auth/AuthContext";
 
 export default function RegisterPage() {
   const [error, seterror] = useState("");
@@ -15,11 +16,19 @@ export default function RegisterPage() {
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
+  const { login } = useAuth();
+
   const onSubmit = async () => {
     const firstName = firstNameRef.current?.value;
     const lastName = lastNameRef.current?.value;
     const email = emailRef.current?.value;
     const password = passwordRef.current?.value;
+
+    // validate the form data
+    if (!firstName || !lastName || !email || !password) {
+      seterror("Check submited data");
+      return;
+    }
 
     // Make the call to API to creat the user
     const response = await fetch(`${BASE_URL}/user/register`, {
@@ -40,9 +49,16 @@ export default function RegisterPage() {
       return;
     }
 
-    const data = await response.json();
+    const token = await response.json();
 
-    console.log(data);
+    if (!token) {
+      seterror("Incorrect token");
+      return;
+    }
+
+    login(email, token);
+
+    console.log(token);
   };
 
   return (
