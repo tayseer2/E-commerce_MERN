@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
   const navigate = useNavigate()
+  const { logout } = useAuth();
 
   const { username, isAuthenticated } = useAuth();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
@@ -35,7 +36,11 @@ export default function Navbar() {
     navigate("login")
   }
 
-
+  const handleLogout = () => {
+    logout()
+    navigate("/")
+    handleCloseUserMenu()
+  }
 
   console.log("From Navbar", { username });
 
