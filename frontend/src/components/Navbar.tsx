@@ -10,13 +10,15 @@ import Avatar from "@mui/material/Avatar";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
+import ShoppingCart from "@mui/icons-material/ShoppingCart";
 import { useAuth } from "../context/Auth/AuthContext";
 import Grid from "@mui/material/Grid";
-import { Button } from "@mui/material";
+import Button from "@mui/material/Button";
+import Badge from "@mui/material/Badge";
 import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { logout } = useAuth();
 
   const { username, isAuthenticated } = useAuth();
@@ -33,13 +35,17 @@ export default function Navbar() {
   };
 
   const handleLogin = () => {
-    navigate("login")
-  }
+    navigate("login");
+  };
 
   const handleLogout = () => {
-    logout()
-    navigate("/")
-    handleCloseUserMenu()
+    logout();
+    navigate("/");
+    handleCloseUserMenu();
+  };
+
+  const handleCart = () => {
+    navigate("/cart");
   }
 
   console.log("From Navbar", { username });
@@ -80,7 +86,21 @@ export default function Navbar() {
               </Typography>
             </Box>
 
-            <Box sx={{ flexGrow: 0 }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                gap: 4,
+                alignItems: "center",
+                justifyContent: "center",
+                flexGrow: 0,
+              }}
+            >
+              <IconButton aria-label="cart" onClick={handleCart}>
+                <Badge badgeContent={4} color="error">
+                  <ShoppingCart sx={{color: "white"}} />
+                </Badge>
+              </IconButton>
               {isAuthenticated ? (
                 <>
                   <Tooltip title="Open settings">
@@ -127,14 +147,16 @@ export default function Navbar() {
                       </Typography>
                     </MenuItem>
                     <MenuItem onClick={handleLogout}>
-                      <Typography  sx={{ textAlign: "center" }}>
+                      <Typography sx={{ textAlign: "center" }}>
                         Loguot
                       </Typography>
                     </MenuItem>
                   </Menu>
                 </>
               ) : (
-                <Button onClick={handleLogin} sx={{background: "white"}}>Login</Button>
+                <Button onClick={handleLogin} sx={{ background: "white" }}>
+                  Login
+                </Button>
               )}
             </Box>
           </Box>
