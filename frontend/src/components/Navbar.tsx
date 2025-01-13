@@ -11,12 +11,14 @@ import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import { useAuth } from "../context/Auth/AuthContext";
-
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+import Grid from "@mui/material/Grid";
+import { Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
+  const navigate = useNavigate()
 
-  const {username, token} = useAuth()
+  const { username, isAuthenticated } = useAuth();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
     null
   );
@@ -29,8 +31,13 @@ export default function Navbar() {
     setAnchorElUser(null);
   };
 
-  console.log("From Navbar", {username, token});
-  
+  const handleLogin = () => {
+    navigate("login")
+  }
+
+
+
+  console.log("From Navbar", { username });
 
   return (
     <AppBar position="static">
@@ -69,38 +76,61 @@ export default function Navbar() {
             </Box>
 
             <Box sx={{ flexGrow: 0 }}>
-              <Tooltip title="Open settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar
-                    alt="Remy Sharp"
-                    src="https://static.vecteezy.com/system/resources/thumbnails/004/607/791/small_2x/man-face-emotive-icon-smiling-male-character-in-blue-shirt-flat-illustration-isolated-on-white-happy-human-psychological-portrait-positive-emotions-user-avatar-for-app-web-design-vector.jpg"
-                  />
-                </IconButton>
-              </Tooltip>
-              <Menu
-                sx={{ mt: "45px" }}
-                id="menu-appbar"
-                anchorEl={anchorElUser}
-                anchorOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "right",
-                }}
-                open={Boolean(anchorElUser)}
-                onClose={handleCloseUserMenu}
-              >
-                {settings.map((setting) => (
-                  <MenuItem key={setting} onClick={handleCloseUserMenu}>
-                    <Typography sx={{ textAlign: "center" }}>
-                      {setting}
-                    </Typography>
-                  </MenuItem>
-                ))}
-              </Menu>
+              {isAuthenticated ? (
+                <>
+                  <Tooltip title="Open settings">
+                    <Grid
+                      container
+                      sx={{
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 2,
+                      }}
+                    >
+                      <Grid item>
+                        <Typography>{username}</Typography>
+                      </Grid>
+                      <Grid item>
+                        <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                          <Avatar
+                            alt={username || ""}
+                            src="https://static.vecteezy.com/system/resources/thumbnails/004/607/791/small_2x/man-face-emotive-icon-smiling-male-character-in-blue-shirt-flat-illustration-isolated-on-white-happy-human-psychological-portrait-positive-emotions-user-avatar-for-app-web-design-vector.jpg"
+                          />
+                        </IconButton>
+                      </Grid>
+                    </Grid>
+                  </Tooltip>
+                  <Menu
+                    sx={{ mt: "45px" }}
+                    id="menu-appbar"
+                    anchorEl={anchorElUser}
+                    anchorOrigin={{
+                      vertical: "top",
+                      horizontal: "right",
+                    }}
+                    keepMounted
+                    transformOrigin={{
+                      vertical: "top",
+                      horizontal: "right",
+                    }}
+                    open={Boolean(anchorElUser)}
+                    onClose={handleCloseUserMenu}
+                  >
+                    <MenuItem onClick={handleCloseUserMenu}>
+                      <Typography sx={{ textAlign: "center" }}>
+                        My Orders
+                      </Typography>
+                    </MenuItem>
+                    <MenuItem onClick={handleLogout}>
+                      <Typography  sx={{ textAlign: "center" }}>
+                        Loguot
+                      </Typography>
+                    </MenuItem>
+                  </Menu>
+                </>
+              ) : (
+                <Button onClick={handleLogin} sx={{background: "white"}}>Login</Button>
+              )}
             </Box>
           </Box>
         </Toolbar>
