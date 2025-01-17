@@ -46,7 +46,11 @@ export default function Navbar() {
 
   const handleCart = () => {
     navigate("/cart");
-  }
+  };
+
+  const handleHomePage = () => {
+    navigate("/");
+  };
 
   console.log("From Navbar", { username });
 
@@ -64,13 +68,15 @@ export default function Navbar() {
             }}
           >
             <Box
+              onClick={handleHomePage}
               sx={{
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
+                cursor: "pointer"
               }}
             >
-              <AdbIcon sx={{ display: "flex", mr: 1 }} />
+              <AdbIcon sx={{ display: "flex", mr: 1,  }} />
               <Typography
                 variant="h6"
                 noWrap
@@ -98,7 +104,7 @@ export default function Navbar() {
             >
               <IconButton aria-label="cart" onClick={handleCart}>
                 <Badge badgeContent={4} color="error">
-                  <ShoppingCart sx={{color: "white"}} />
+                  <ShoppingCart sx={{ color: "white" }} />
                 </Badge>
               </IconButton>
               {isAuthenticated ? (
