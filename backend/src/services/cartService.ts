@@ -1,11 +1,11 @@
-import { cartModel } from "../models/cartModel";
-import { IOrderItem, orderModel } from "../models/orderModel";
+import { Types } from "mongoose";
+import { ICart, ICartItem, cartModel } from "../models/cartModel";
 import productModel from "../models/productModel";
+import { IOrderItem, orderModel } from "../models/orderModel";
 
 interface CreateCartForUser {
   userId: string;
 }
-
 const createCartForUser = async ({ userId }: CreateCartForUser) => {
   const cart = await cartModel.create({ userId, totalAmount: 0 });
   await cart.save();
@@ -14,12 +14,21 @@ const createCartForUser = async ({ userId }: CreateCartForUser) => {
 
 interface GetActiveCartForUser {
   userId: string;
+  populateProduct?: boolean;
 }
 
 export const getActiveCartForUser = async ({
   userId,
+  populateProduct,
 }: GetActiveCartForUser) => {
-  let cart = await cartModel.findOne({ userId, status: "active" });
+  let cart;
+  if (populateProduct) {
+    cart = await cartModel
+      .findOne({ userId, status: "active" })
+      .populate("items.product");
+  } else {
+    cart = await cartModel.findOne({ userId, status: "active" });
+  }
 
   if (!cart) {
     cart = await createCartForUser({ userId });
@@ -40,7 +49,10 @@ export const clearCart = async ({ userId }: ClearCart) => {
 
   const updatedCart = await cart.save();
 
-  return { data: updatedCart, statusCode: 200 };
+  return {
+    data: await getActiveCartForUser({ userId, populateProduct: true }),
+    statusCode: 200,
+  };
 };
 
 interface AddItemToCart {
@@ -56,7 +68,7 @@ export const addItemToCart = async ({
 }: AddItemToCart) => {
   const cart = await getActiveCartForUser({ userId });
 
-  // Dose The Item exist in the cart?
+  // Does the item exist in the cart ?
   const existsInCart = cart.items.find(
     (p) => p.product.toString() === productId
   );
@@ -65,16 +77,15 @@ export const addItemToCart = async ({
     return { data: "Item already exists in cart!", statusCode: 400 };
   }
 
-  // Fetch the Product
-
+  // Fetch the product
   const product = await productModel.findById(productId);
 
   if (!product) {
-    return { data: "Product not found!", statusCode: 404 };
+    return { data: "Product not found!", statusCode: 400 };
   }
 
   if (product.stock < quantity) {
-    return { data: "Product out of stock!", statusCode: 400 };
+    return { data: "Low stock for item", statusCode: 400 };
   }
 
   cart.items.push({
@@ -83,12 +94,15 @@ export const addItemToCart = async ({
     quantity,
   });
 
-  // uptade the total amount
+  // Update the totalAmount for the cart
   cart.totalAmount += product.price * quantity;
 
-  const updatedCart = await cart.save();
+  await cart.save();
 
-  return { data: updatedCart, statusCode: 200 };
+  return {
+    data: await getActiveCartForUser({ userId, populateProduct: true }),
+    statusCode: 200,
+  };
 };
 
 interface UpdateItemInCart {
@@ -109,37 +123,36 @@ export const updateItemInCart = async ({
   );
 
   if (!existsInCart) {
-    return { data: "Item does not exist in cart!", statusCode: 400 };
+    return { data: "Item does not exist in cart", statusCode: 400 };
   }
 
   const product = await productModel.findById(productId);
 
   if (!product) {
-    return { data: "Product not found!", statusCode: 404 };
+    return { data: "Product not found!", statusCode: 400 };
   }
 
   if (product.stock < quantity) {
-    return { data: "Product out of stock!", statusCode: 400 };
+    return { data: "Low stock for item", statusCode: 400 };
   }
-
-  existsInCart.quantity = quantity;
 
   const otherCartItems = cart.items.filter(
     (p) => p.product.toString() !== productId
   );
 
-  let totla = otherCartItems.reduce((sum, product) => {
-    sum += product.unitPrice * product.quantity;
-    return sum;
-  }, 0);
+  let total = calculateCartTotalItems({ cartItems: otherCartItems });
 
-  totla += existsInCart.unitPrice * existsInCart.quantity;
+  existsInCart.quantity = quantity;
+  total += existsInCart.quantity * existsInCart.unitPrice;
 
-  cart.totalAmount = totla;
+  cart.totalAmount = total;
 
-  const updatedCart = await cart.save();
+  await cart.save();
 
-  return { data: updatedCart, statusCode: 200 };
+  return {
+    data: await getActiveCartForUser({ userId, populateProduct: true }),
+    statusCode: 200,
+  };
 };
 
 interface DeleteItemInCart {
@@ -147,9 +160,9 @@ interface DeleteItemInCart {
   userId: string;
 }
 
-export const deleteItemInCart = async ({
-  productId,
+export const deleteItemIncart = async ({
   userId,
+  productId,
 }: DeleteItemInCart) => {
   const cart = await getActiveCartForUser({ userId });
 
@@ -158,45 +171,54 @@ export const deleteItemInCart = async ({
   );
 
   if (!existsInCart) {
-    return { data: "Item does not exist in cart!", statusCode: 400 };
+    return { data: "Item does not exist in cart", statusCode: 400 };
   }
 
   const otherCartItems = cart.items.filter(
     (p) => p.product.toString() !== productId
   );
 
-  const totla = otherCartItems.reduce((sum, product) => {
-    sum += product.unitPrice * product.quantity;
+  const total = calculateCartTotalItems({ cartItems: otherCartItems });
+
+  cart.items = otherCartItems;
+  cart.totalAmount = total;
+
+  await cart.save();
+
+  return {
+    data: await getActiveCartForUser({ userId, populateProduct: true }),
+    statusCode: 200,
+  };
+};
+
+const calculateCartTotalItems = ({ cartItems }: { cartItems: ICartItem[] }) => {
+  const total = cartItems.reduce((sum, product) => {
+    sum += product.quantity * product.unitPrice;
     return sum;
   }, 0);
 
-  cart.items = otherCartItems;
-  cart.totalAmount = totla;
-
-  const updatedCart = await cart.save();
-
-  return { data: updatedCart, statusCode: 200 };
+  return total;
 };
 
 interface Checkout {
   userId: string;
   address: string;
 }
-
 export const checkout = async ({ userId, address }: Checkout) => {
   if (!address) {
-    return { data: "Address is required!", statusCode: 400 };
+    return { data: "Please add the address", statusCode: 400 };
   }
 
   const cart = await getActiveCartForUser({ userId });
 
   const orderItems: IOrderItem[] = [];
 
+  // Loop cartItems and create orderItems
   for (const item of cart.items) {
     const product = await productModel.findById(item.product);
 
     if (!product) {
-      return { data: "Product not found!", statusCode: 404 };
+      return { data: "Product not found", statusCode: 400 };
     }
 
     const orderItem: IOrderItem = {
@@ -204,9 +226,6 @@ export const checkout = async ({ userId, address }: Checkout) => {
       productImage: product.image,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
-      push: function (orderItems: IOrderItem): unknown {
-        throw new Error("Function not implemented.");
-      },
     };
 
     orderItems.push(orderItem);
@@ -221,7 +240,7 @@ export const checkout = async ({ userId, address }: Checkout) => {
 
   await order.save();
 
-  // Update the cart Status to be completed
+  // Update the cart status to be completed
   cart.status = "completed";
   await cart.save();
 

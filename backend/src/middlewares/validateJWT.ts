@@ -1,17 +1,13 @@
+import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
-import { NextFunction, Request, Response } from "express";
 import userModel from "../models/userModel";
-import { ExtendedRequest } from "../types/extendedRequest";
+import { ExtendRequest } from "../types/extendedRequest";
 
-const validateJWT = (
-  req: ExtendedRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  const authorizationHeader = req.get("Authorization");
+const validateJWT = (req: ExtendRequest, res: Response, next: NextFunction) => {
+  const authorizationHeader = req.get("authorization");
 
   if (!authorizationHeader) {
-    res.status(401).send("Unauthorized");
+    res.status(403).send("Authorization header was not provided");
     return;
   }
 
@@ -24,12 +20,12 @@ const validateJWT = (
 
   jwt.verify(token, process.env.JWT_SECRET || "", async (err, payload) => {
     if (err) {
-      res.status(401).send("Invalid token");
+      res.status(403).send("Invalid token");
       return;
     }
 
     if (!payload) {
-      res.status(401).send("Invalid token payload");
+      res.status(403).send("Invalid token payload");
       return;
     }
 
@@ -39,7 +35,7 @@ const validateJWT = (
       lastName: string;
     };
 
-    // fetch user from database based on the payload
+    // Fetch user from database based on the payload
     const user = await userModel.findOne({ email: userPayload.email });
     req.user = user;
     next();

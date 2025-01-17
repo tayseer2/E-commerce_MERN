@@ -1,6 +1,5 @@
-import { Request } from 'express';
+import { Request } from "express";
 
-
-export interface ExtendedRequest extends Request {
+export interface ExtendRequest extends Request {
   user?: any;
 }

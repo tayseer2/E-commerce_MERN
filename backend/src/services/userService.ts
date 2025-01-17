@@ -2,7 +2,7 @@ import userModel from "../models/userModel";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-interface RegisterPrarams {
+interface RegisterParams {
   firstName: string;
   lastName: string;
   email: string;
@@ -14,39 +14,38 @@ export const register = async ({
   lastName,
   email,
   password,
-}: RegisterPrarams) => {
+}: RegisterParams) => {
   const findUser = await userModel.findOne({ email });
 
   if (findUser) {
-    return { data: "User already exists", statusCode: 400 };
+    return { data: "User already exists!", statusCode: 400 };
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-
   const newUser = new userModel({
-    firstName,
-    lastName,
     email,
     password: hashedPassword,
+    firstName,
+    lastName,
   });
   await newUser.save();
+
   return { data: generateJWT({ firstName, lastName, email }), statusCode: 200 };
 };
 
-interface LoginPrarams {
+interface LoginParams {
   email: string;
   password: string;
 }
 
-export const login = async ({ email, password }: LoginPrarams) => {
+export const login = async ({ email, password }: LoginParams) => {
   const findUser = await userModel.findOne({ email });
 
   if (!findUser) {
-    return { data: "Incorrect Email or Password!", statusCode: 400 };
+    return { data: "Incorrect email or password!", statusCode: 400 };
   }
 
   const passwordMatch = await bcrypt.compare(password, findUser.password);
-
   if (passwordMatch) {
     return {
       data: generateJWT({
@@ -58,9 +57,9 @@ export const login = async ({ email, password }: LoginPrarams) => {
     };
   }
 
-  return { data: "Incorrect Email or Password!", statusCode: 400 };
+  return { data: "Incorrect email or password!", statusCode: 400 };
 };
 
 const generateJWT = (data: any) => {
-  return jwt.sign(data, process.env.JWT_SECRET || "");
+  return jwt.sign(data, process.env.JWT_SECRET || '');
 };
