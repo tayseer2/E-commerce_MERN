@@ -1,14 +1,57 @@
-import { FC, PropsWithChildren, useState } from "react";
+import { FC, PropsWithChildren, useEffect, useState } from "react";
 import { CartContext } from "./ContextCart";
 import { CartItem } from "../../types/cartItem";
 import { BASE_URL } from "../../constants/baseUrl";
 import { useAuth } from "../Auth/AuthContext";
+import { Alert } from "@mui/material";
 
 const CartProvider: FC<PropsWithChildren> = ({ children }) => {
   const { token } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+    const fetchCart = async () => {
+      const response = await fetch(`${BASE_URL}/cart`, {
+        headers: {
+          Authorization: `Bearat ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        setError("Failed to fetch user cart, please try agin");
+      }
+
+      const data = await response.json();
+
+      const cartItemsMapped = data.items.map(
+        ({
+          product,
+          quantity,
+          unitPrice,
+        }: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          product: any;
+          quantity: number;
+          unitPrice: number;
+        }) => ({
+          productId: product._id,
+          title: product.title,
+          image: product.productImage,
+          quantity,
+          unitPrice,
+        })
+      );
+
+      setCartItems(cartItemsMapped);
+    };
+
+    fetchCart();
+  }, [token]);
 
   const addItemToCart = async (productId: string) => {
     try {
@@ -30,31 +73,20 @@ const CartProvider: FC<PropsWithChildren> = ({ children }) => {
 
       const cart = await response.json();
 
-      const cartItemsMapped = cart.items.map(
-        ({
-          product,
-          quantity,
-          unitPrice,
-        }: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          product: any;
-          quantity: number;
-          unitPrice: number;
-        }) => ({
-          productId: product._id,
-          title: product.title,
-          image: product.productImage,
-          quantity,
-          unitPrice,
-        })
-      );
-
-      setCartItems(cartItemsMapped);
+      // setCartItems(...cartItemsMapped);
       setTotalAmount(cart.totalAmount);
     } catch (error) {
       console.error(error);
     }
   };
+
+  if (error) {
+    return (
+      <Alert variant="filled" severity="error">
+        {error}
+      </Alert>
+    );
+  }
 
   return (
     <CartContext.Provider value={{ cartItems, totalAmount, addItemToCart }}>

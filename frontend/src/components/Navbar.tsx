@@ -16,11 +16,12 @@ import Grid from "@mui/material/Grid";
 import Button from "@mui/material/Button";
 import Badge from "@mui/material/Badge";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "../context/Cart/ContextCart";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const { logout } = useAuth();
-
+  const {cartItems} = useCart();
   const { username, isAuthenticated } = useAuth();
   const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(
     null
@@ -103,7 +104,7 @@ export default function Navbar() {
               }}
             >
               <IconButton aria-label="cart" onClick={handleCart}>
-                <Badge badgeContent={4} color="error">
+                <Badge badgeContent={cartItems.length} color="error">
                   <ShoppingCart sx={{ color: "white" }} />
                 </Badge>
               </IconButton>

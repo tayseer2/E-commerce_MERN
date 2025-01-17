@@ -11,28 +11,7 @@ export default function CartPage() {
 
   // console.log(error);
 
-  // useEffect(() => {
-  //   if (!token) {
-  //     return;
-  //   }
-  //   const fetchCart = async () => {
-  //     const response = await fetch(`${BASE_URL}/cart`, {
-  //       headers: {
-  //         Authorization: `Bearat ${token}`,
-  //       },
-  //     });
 
-  //     if (!response.ok) {
-  //       setError("Failed to fetch user cart, please try agin");
-  //     }
-
-  //     const data = await response.json();
-
-  //     setCart(data);
-  //   };
-
-  //   fetchCart();
-  // }, [token]);
 
   return (
     <Container sx={{ mt: 4 }}>
