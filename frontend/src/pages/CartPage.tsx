@@ -2,7 +2,7 @@ import { Box, Container, Typography } from "@mui/material";
 import { useCart } from "../context/Cart/ContextCart";
 import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
-import DeleteIcon from "@mui/icons-material/Delete";
+// import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function CartPage() {
   const { cartItems, totalAmount, updateItemInCart } = useCart();
@@ -74,9 +74,9 @@ export default function CartPage() {
                 </ButtonGroup>
               </Box>
             </Box>
-            <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={() => removeItemFromCart()}>
+            {/* <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={() => removeItemFromCart()}>
               Delete
-            </Button>
+            </Button> */}
           </Box>
         </>
       ))}
