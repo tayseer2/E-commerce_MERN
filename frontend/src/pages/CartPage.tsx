@@ -14,9 +14,7 @@ export default function CartPage() {
     updateItemInCart(productId, quantity);
   };
 
-  const removeItemFromCart = () => {
-    // implement remove item from cart logic here
-  }
+
 
   return (
     <Container fixed sx={{ mt: 4 }}>
