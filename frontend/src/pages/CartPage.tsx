@@ -5,7 +5,18 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function CartPage() {
-  const { cartItems, totalAmount } = useCart();
+  const { cartItems, totalAmount, updateItemInCart } = useCart();
+
+  const handleQuantity = (productId: string, quantity: number) => {
+    if(quantity <= 0) {
+      return;
+    }
+    updateItemInCart(productId, quantity);
+  };
+
+  const removeItemFromCart = () => {
+    // implement remove item from cart logic here
+  }
 
   return (
     <Container fixed sx={{ mt: 4 }}>
@@ -20,7 +31,7 @@ export default function CartPage() {
       >
         My Cart
       </Typography>
-      {cartItems.map(({ title, image, quantity, unitPrice }) => (
+      {cartItems.map(({ title, image, quantity, unitPrice, productId }) => (
         <>
           <Box
             sx={{
@@ -52,19 +63,29 @@ export default function CartPage() {
                   variant="contained"
                   aria-label="Basic button group"
                 >
-                  <Button>+</Button>
-                  <Button>-</Button>
+                  <Button
+                    onClick={() => handleQuantity(productId, quantity - 1)}
+                  >
+                    -
+                  </Button>
+                  <Button
+                    onClick={() => handleQuantity(productId, quantity + 1)}
+                  >
+                    +
+                  </Button>
                 </ButtonGroup>
               </Box>
             </Box>
-            <Button variant="outlined" color="error" startIcon={<DeleteIcon />}>
+            <Button variant="outlined" color="error" startIcon={<DeleteIcon />} onClick={() => removeItemFromCart()}>
               Delete
             </Button>
           </Box>
         </>
       ))}
-      <Box sx={{marginTop: 5, marginBottom: 5}}>
-        <Typography variant="h4">Total Amount: {totalAmount.toFixed(2)} TRY</Typography>
+      <Box sx={{ marginTop: 5, marginBottom: 5 }}>
+        <Typography variant="h4">
+          Total Amount: {totalAmount.toFixed(2)} TRY
+        </Typography>
       </Box>
     </Container>
   );
