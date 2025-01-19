@@ -3,6 +3,7 @@ import { useCart } from "../context/Cart/ContextCart";
 import Button from "@mui/material/Button";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useNavigate } from "react-router-dom";
 
 export default function CartPage() {
   const {
@@ -12,6 +13,8 @@ export default function CartPage() {
     removeItemInCart,
     clearCart,
   } = useCart();
+
+  const navigate = useNavigate()
 
   const handleQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
@@ -24,6 +27,9 @@ export default function CartPage() {
     removeItemInCart(product);
   };
 
+  const handleCheckout = () =>  {
+    navigate("/checkout")
+  }
   return (
     <Container fixed sx={{ mt: 4 }}>
       <Box
@@ -105,10 +111,19 @@ export default function CartPage() {
             </>
           ))}
 
-          <Box sx={{ marginTop: 5, marginBottom: 5 }}>
+          <Box
+            sx={{
+              marginTop: 5,
+              marginBottom: 5,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Typography variant="h4">
               Total Amount: {totalAmount.toFixed(2)} TRY
             </Typography>
+            <Button variant="contained" onClick={handleCheckout}>GO TO CHECKOUT</Button>
           </Box>
         </Box>
       ) : (
